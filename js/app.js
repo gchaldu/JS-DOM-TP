@@ -4,6 +4,7 @@ const btn = document.getElementById("btnAgregar");
 const estudiante = document.getElementById("estudiante");
 const email = document.getElementById("email");
 const legajo = document.getElementById("legajo");
+const materia = document.getElementById("materia");
 const listaEstudiantes = document.getElementById("listaEstudiantes");
 const pCantidad = document.getElementById("cantidad");
 
@@ -21,21 +22,26 @@ btn.addEventListener("click", () => {
   const nombre = estudiante.value;
   const mail = email.value;
   const leg = legajo.value;
+  const mat = materia.value;
 
-  if (validarCampos(leg, nombre, mail)) {
+  if (validarCampos(leg, nombre, mail, mat)) {
     const est = new Estudiante(leg, nombre, mail);
 
     if (listado.has(leg)) {
       return alert("El legajo ya existe!!!");
     }
-
+    est.add(mat);
     listado.set(est.legajo, est);
 
-    pCantidad.textContent = listado.size;
+    limpiarCampos();
+
+    pCantidad.textContent = `Total de estudiantes: ${listado.size} `;
 
     const li = document.createElement("li");
     li.setAttribute("id", leg);
-    li.textContent = nombre;
+    li.textContent = `Estudiante: ${est.nombre} - 
+                      Materia: ${est.listadoMaterias.map((mat) => mat)}`;
+
     li.style.cursor = "pointer";
     li.addEventListener("click", deleteLI);
 
@@ -54,8 +60,8 @@ btn.addEventListener("click", () => {
   }
 });
 
-const validarCampos = (leg, nombre, mail) => {
-  if (!leg || !nombre || !mail) {
+const validarCampos = (leg, nombre, mail, mat) => {
+  if (!leg || !nombre || !mail || !mat) {
     return false;
   }
   return true;
@@ -73,12 +79,11 @@ const validarCampos2 = (estudiante) => {
 };
 
 const deleteLI = (event) => {
-  console.log(event);
   if (event.target.tagName === "LI") {
     event.target.remove();
     console.log(event.target.id);
     deleteEstudianteMap(event.target.id);
-    pCantidad.textContent = listado.size;
+    pCantidad.textContent = `Total de estudiantes: ${listado.size} `;
   }
 };
 
@@ -87,3 +92,48 @@ const deleteEstudianteMap = (legajo) => {
     listado.delete(legajo);
   }
 };
+
+const limpiarCampos = () => {
+  const inputTextAll = document.querySelectorAll(
+    'input[type = "text"], input[type = "email"]'
+  );
+  inputTextAll.forEach((input) => (input.value = ""));
+};
+
+const filtrarMateria = (buscar) => {
+  eliminarElement();
+  return [...listado.values()].filter((e) =>
+    e.listadoMaterias.includes(buscar)
+  );
+};
+
+document.addEventListener("click", () => {
+  const buscar = document.getElementById("buscar").value;
+  const estudianteMaterias = filtrarMateria(buscar);
+  if (estudianteMaterias.length > 0) {
+    const h3 = document.createElement("h3");
+    h3.textContent = "Estudiantes por materia";
+    const ul = document.createElement("ul");
+
+    const div = document.getElementById("estPorMat");
+    div.appendChild(h3);
+    estudianteMaterias.forEach((e) => {
+      const li = document.createElement("li");
+      li.textContent = `El estudiante: ${e.nombre}`;
+
+      ul.appendChild(li);
+    });
+
+    div.appendChild(ul);
+  }
+});
+
+function eliminarElement() {
+  const div = document.getElementById("estPorMat");
+  const todo = div.querySelectorAll("ul, h3");
+  if (todo) {
+    todo.forEach((element) => {
+      div.removeChild(element);
+    });
+  }
+}
